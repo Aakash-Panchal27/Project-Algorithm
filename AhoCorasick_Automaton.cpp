@@ -51,6 +51,7 @@ public:
         int current_vertex = 0;
         for(int i = 0; i < one.size(); i++)
         {
+            //cout<<current_vertex<<endl;
             if(Trie[current_vertex].clusters[one[i]-'a'] == -1)
             {
                 vertex newone = vertex(char(one[i]), int(Trie.size()), current_vertex);
@@ -169,13 +170,58 @@ public:
              return output_link_helper(Trie[node].suffix_link);
         }
     }
+
+    void process_string(string & one)
+    {
+        int root = 0;
+        for(int i = 0; i < one.size(); i++)
+        {
+            while(Trie[root].clusters[one[i]-'a'] == -1)
+            {
+                root = Trie[root].suffix_link;
+
+                if(root == 0)
+                {
+                    break;
+                }
+            }
+
+            if(Trie[root].clusters[one[i]-'a'] != -1)
+                root = Trie[root].clusters[one[i]-'a'];
+            else
+            {
+                i++;
+                root = 0;
+                continue;
+            }
+
+            if(Trie[root].isword == true)
+            {
+                cout << Trie[root].mystr << endl;
+            }
+
+
+            int io = root;
+            while(Trie[io].output_link != -1)
+            {
+                if(Trie[Trie[io].output_link].isword == true)
+                {
+                    cout << Trie[Trie[io].output_link].mystr << endl;
+                }
+                io = Trie[io].output_link;
+            }
+
+        }
+
+    }
+
 };
 
 int main()
 {
     Aho_Corasick aho = Aho_Corasick();
 
-    string one = "aho", two = "aa", three = "aaa", four = "aaaa";
+    string one = "i", two = "in", three = "tin", four = "sting";
 
     vector<string> vec;
 
@@ -189,6 +235,15 @@ int main()
     aho.make_suffix_links();
 
     aho.make_output_link();
-    
+
+    string pst = "sting";
+
+    for(int i = 0;i < pst.size(); i++)
+    {
+        pst[i] = tolower(pst[i]);
+    }
+
+    aho.process_string(pst);
+
     return 0;
 }
