@@ -1,6 +1,7 @@
-#include <bits/stdc++.h>
+#include<bits/stdc++.h>
 using namespace std;
 
+// Other Global declarations
 const int MIN_MERGE = 64;
 const int MIN_GALLOP = 7;
 int cur_minGallop = MIN_GALLOP;
@@ -61,8 +62,6 @@ void binarysort(vector<int>& data, int start, int lo, int hi)
 				j--;
 			}
 		}
-
-		data[left] = ele;
 	}
 }
 
@@ -99,11 +98,12 @@ int find_Runandmake_Ascending(vector<int>& data, int start, int end)
 }
 
 // Returns k, 0 <= k <= n such that a[b + k - 1] <= key < a[b + k]
-// Right-most 
-inline int gallopRight(vector<int>& data, int key, int base, int len, int hint)
+// Rightmost index in case of equal elements
+int gallopRight(vector<int>& data, int key, int base, int len, int hint)
 {
 	int ofs = 1;
 	int lastofs = 0;
+	
 	if (key < data[base + hint]) {
 		int maxofs = hint + 1;
 
@@ -147,8 +147,9 @@ inline int gallopRight(vector<int>& data, int key, int base, int len, int hint)
 	return ofs;
 }
 
-
-inline int gallopLeft(vector<int>& data, int key, int base, int len, int hint)
+// Returns k, 0 <= k <= n such that a[b + k - 1] < key <= a[b + k]
+// Leftmost index in case of equal elements
+int gallopLeft(vector<int>& data, int key, int base, int len, int hint)
 {
 	int ofs = 1;
 	int lastofs = 0;
@@ -173,7 +174,7 @@ inline int gallopLeft(vector<int>& data, int key, int base, int len, int hint)
 		int maxofs = len - hint;
 
 		// Gallop towards right side
-		while (ofs < maxofs && key >= data[base + hint + ofs]) {
+		while (ofs < maxofs && key > data[base + hint + ofs]) {
 			lastofs = ofs;
 			ofs = (ofs << 1) + 1;
 		}
@@ -198,7 +199,8 @@ inline int gallopLeft(vector<int>& data, int key, int base, int len, int hint)
 // If len1 <= len2 the mergeLo is called
 // First element of run1 must be greater than first element of run2
 // and last element of run1 must be greater than all elements of run2
-void mergeLo(vector<int>& data, int base1, int len1, int base2, int len2) {
+void merge_LtoR(vector<int>& data, int base1, int len1, int base2, int len2)
+{	
 	// Copy smaller run in temporary buffer
 	vector<int> small_run(data.begin() + base1, data.begin() + base1 + len1);
 
@@ -207,6 +209,8 @@ void mergeLo(vector<int>& data, int base1, int len1, int base2, int len2) {
 	int dest = base1;
 
 	data[dest++] = data[cursor2++];
+
+	// Two degenerate cases
 	if (--len2 == 0) {
 		while (cursor1 < len1)
 			data[dest++] = small_run[cursor1++];
@@ -220,7 +224,11 @@ void mergeLo(vector<int>& data, int base1, int len1, int base2, int len2) {
 		return;
 	}
 
+	// Used to end merge in degenerate case
 	bool done = false;
+
+	// cur_minGallop is a global variable
+	// Copy it to a local variable for performance
 	int minGallop = cur_minGallop;
 	while (true) {
 		int count1 = 0; // Number of times in a row that first run won
@@ -252,7 +260,7 @@ void mergeLo(vector<int>& data, int base1, int len1, int base2, int len2) {
 		if (done)
 			break;
 
-		// One run is winning consistently then we galloping
+		// One run is winning consistently then galloping
 		// may lead to a huge win
 		do {
 			count1 = gallopRight(small_run, data[cursor2], cursor1, len1, 0);
@@ -323,13 +331,13 @@ void mergeLo(vector<int>& data, int base1, int len1, int base2, int len2) {
 
 }
 
-// If len2 <= len1 the mergeHi is called
+// If len2 <= len1 the merge_RtoL is called
 // First element of run1 must be greater than first element of run2
 // and last element of run1 must be greater than all elements of run2
-void mergeHi(vector<int>& data, int base1, int len1, int base2, int len2) {
+void merge_RtoL(vector<int>& data, int base1, int len1, int base2, int len2) 
+{
 	// Copy smaller run in temporary buffer
 	vector<int> small_run(data.begin() + base2, data.begin() + base2 + len2);
-	//	cout << "MHigh" << endl;
 
 	int cursor1 = base1 + len1 - 1;
 	int cursor2 = len2 - 1;
@@ -349,7 +357,11 @@ void mergeHi(vector<int>& data, int base1, int len1, int base2, int len2) {
 		return;
 	}
 
+	// Used to end merge in degenerate case
 	bool done = false;
+
+	// cur_minGallop is a global variable
+	// Copy it to a local variable for performance
 	int minGallop = cur_minGallop;
 	while (true) {
 		int count1 = 0; // Number of times in a row that first run won
@@ -452,7 +464,6 @@ void mergeHi(vector<int>& data, int base1, int len1, int base2, int len2) {
 
 }
 
-
 // Merges two runs
 // parameter i must be stacksize - 2 or stacksize - 3
 void mergeAt(vector<int>& data, int i)
@@ -486,9 +497,9 @@ void mergeAt(vector<int>& data, int i)
 		return;
 
 	if (len1 <= len2)
-		mergeLo(data, base1, len1, base2, len2);
+		merge_LtoR(data, base1, len1, base2, len2);
 	else
-		mergeHi(data, base1, len1, base2, len2);
+		merge_RtoL(data, base1, len1, base2, len2);
 
 }
 
@@ -523,7 +534,7 @@ void mergeForceCollapse(vector<int>& data) //
 	}
 }
 
-void Timsort(vector<int>& data)	//
+void Timsort(vector<int>& data)
 {
 	int low = 0, high = data.size();
 	int remaining = data.size();
@@ -563,38 +574,30 @@ void Timsort(vector<int>& data)	//
 		mergeForceCollapse(data);
 }
 
-
 int main()
 {
 	srand(unsigned(time(0)));
 
 	vector<int> data;
-
-	for (int i = 0; i < 200000; i++)
+	
+	for(int i=0;i<200000;i++)
 		data.push_back(rand());
-
+		
 	int size = data.size();
 
+	// Standard procedure to find max. stack size for given n
 	int stack_max_size = (size < 120 ? 5 : size < 1542 ? 10 : size < 119151 ? 19 : 40) * 256;
 
 	stack_of_runs.resize(stack_max_size);
-	for (int i = 0; i < stack_max_size; i++)
+	for (int i = 0; i < stack_max_size; i++) {
 		stack_of_runs[i] = run();
+	}
 
 	stackSize = 0;
 
 	Timsort(data);
-
-	int i;
-
-	for (i = 1; i < data.size(); i++)
-		if (data[i] < data[i - 1])
-			break;
-
-	if (i == data.size()) {
-		cout << "correct" << endl;
-		return 0;
-	}
-
+	
+	cout << is_sorted(data.begin(),data.end()) << endl;
+	
 	return 0;
 }
