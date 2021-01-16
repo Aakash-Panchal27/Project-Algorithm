@@ -1,3 +1,4 @@
+// source : https://codeforces.com/blog/entry/86827
 void ntt(vector<Mint> &a, bool inv) {
   int n = sz(a);
   int ln = __builtin_ctz(n);
